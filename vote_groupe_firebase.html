@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎸 Vote du Groupe</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #181818;
+    --surface2: #222;
+    --accent: #e8ff3b;
+    --accent2: #ff4d6d;
+    --text: #f0f0f0;
+    --muted: #888;
+    --border: #2a2a2a;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 20px 16px 60px;
+    background-image: radial-gradient(ellipse at 20% 10%, #1a1a0a 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 80%, #0a0a1a 0%, transparent 60%);
+  }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 8vw, 4rem);
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 32px; font-weight: 300; }
+  .step { display: none; animation: fadeIn 0.35s ease; }
+  .step.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: #444; }
+  .btn {
+    display: block; width: 100%;
+    background: var(--accent); color: #000;
+    border: none; border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem; letter-spacing: 0.08em;
+    padding: 13px; cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn.danger { background: var(--accent2); color: #fff; }
+  .progress-bar { display: flex; gap: 6px; margin-bottom: 28px; }
+  .progress-bar .dot {
+    height: 4px; flex: 1; border-radius: 2px;
+    background: var(--border); transition: background 0.3s;
+  }
+  .progress-bar .dot.done { background: var(--accent); }
+  .progress-bar .dot.active { background: var(--accent); opacity: 0.5; }
+  .member-tag {
+    display: inline-block;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 0.78rem; color: var(--muted); margin-bottom: 16px;
+  }
+  .track-option {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface2); border: 2px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
+    cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    user-select: none;
+  }
+  .track-option:hover { border-color: var(--accent); }
+  .track-option.selected { border-color: var(--accent); background: #1e2000; }
+  .track-option .radio {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s;
+  }
+  .track-option.selected .radio { border-color: var(--accent); }
+  .track-option.selected .radio::after {
+    content: ''; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--accent);
+  }
+  .track-option .track-name { font-size: 0.9rem; font-weight: 500; }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem; letter-spacing: 0.06em;
+    color: var(--muted); text-transform: uppercase;
+    margin-bottom: 10px; margin-top: 4px;
+  }
+  .result-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
+    position: relative; overflow: hidden;
+  }
+  .result-member { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 4px; }
+  .vote-bar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .vote-bar-label { font-size: 0.78rem; color: var(--muted); min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vote-bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .vote-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.6s cubic-bezier(0.22,1,0.36,1); }
+  .vote-bar-fill.loser { background: #444; }
+  .vote-bar-count { font-size: 0.78rem; color: var(--muted); min-width: 20px; text-align: right; }
+  .setlist {
+    background: #0e1a00; border: 1px solid var(--accent);
+    border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
+  }
+  .setlist h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--accent); letter-spacing: 0.06em; margin-bottom: 14px; }
+  .setlist-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1a2a00; }
+  .setlist-item:last-child { border-bottom: none; }
+  .setlist-num { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); min-width: 28px; }
+  .setlist-track { font-size: 0.95rem; font-weight: 500; }
+  .setlist-by { font-size: 0.72rem; color: var(--muted); }
+  .voter-status { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .voter-chip {
+    padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--muted);
+  }
+  .voter-chip.done { border-color: var(--accent); color: var(--accent); background: #1a2000; }
+  .info-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px; text-align: center;
+    color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; line-height: 1.6;
+  }
+  .spinner {
+    display: inline-block; width: 18px; height: 18px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .winner-badge {
+    position: absolute; top: 14px; right: 14px;
+    background: var(--accent); color: #000;
+    font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem;
+    letter-spacing: 0.06em; padding: 3px 10px; border-radius: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎸 Vote du Groupe</h1>
+<p class="subtitle">Sélection démocratique du setlist — Undercover</p>
+
+<!-- LOGIN -->
+<div class="step active" id="step-login">
+  <div class="card">
+    <label>Ton prénom / pseudo</label>
+    <input type="text" id="login-name" placeholder="Ex : Marco" maxlength="30" />
+    <button class="btn" id="btn-login" onclick="doLogin()">C'est parti →</button>
+  </div>
+</div>
+
+<!-- SOUMETTRE -->
+<div class="step" id="step-submit">
+  <div class="progress-bar" id="pb-submit"></div>
+  <div class="member-tag" id="submit-tag"></div>
+  <div id="submit-content"></div>
+</div>
+
+<!-- VOTER -->
+<div class="step" id="step-vote">
+  <div class="progress-bar" id="pb-vote"></div>
+  <div class="member-tag" id="vote-tag"></div>
+  <div id="vote-body"></div>
+  <button class="btn" onclick="submitVote()" id="btn-vote">Envoyer mon vote</button>
+</div>
+
+<!-- RÉSULTATS -->
+<div class="step" id="step-results">
+  <div id="results-body"></div>
+  <button class="btn danger" style="margin-top:12px" onclick="resetApp()">🗑 Réinitialiser (admin)</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, remove }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCkCTzqXisZ-QpovOM8C7yHSkzqFALVNN8",
+  authDomain: "choix-de-morceaux-undercover.firebaseapp.com",
+  databaseURL: "https://choix-de-morceaux-undercover-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "choix-de-morceaux-undercover",
+  storageBucket: "choix-de-morceaux-undercover.firebasestorage.app",
+  messagingSenderId: "266524738034",
+  appId: "1:266524738034:web:6fc931d4b2d1aa9d28ab6b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+const MEMBERS_TOTAL = 5;
+let currentUser = null;
+let selections   = {};
+let unsubscribe  = null;
+
+// ── Helpers ──────────────────────────────────────────────────────
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function showStep(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function progressBar(id, done, total) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = Array.from({length: total}, (_,i) =>
+    `<div class="dot ${i < done ? 'done' : i === done ? 'active' : ''}"></div>`
+  ).join('');
+}
+
+// ── Login ─────────────────────────────────────────────────────────
+window.doLogin = async function() {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) return alert('Entre ton prénom !');
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Connexion…';
+  currentUser = name;
+  await routeUser();
+};
+
+document.getElementById('login-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.doLogin();
+});
+
+// ── Routing ───────────────────────────────────────────────────────
+async function routeUser() {
+  const snap = await get(ref(db, '/'));
+  const data = snap.val() || {};
+  const submissions = data.submissions || {};
+  const votes       = data.votes       || {};
+
+  const allSubmitted = Object.keys(submissions).length >= MEMBERS_TOTAL;
+  const hasSubmitted = !!submissions[currentUser];
+  const hasVoted     = !!votes[currentUser];
+
+  if (!hasSubmitted) {
+    showStep('step-submit');
+    listenAndRenderSubmit();
+  } else if (allSubmitted && !hasVoted) {
+    showStep('step-vote');
+    renderVoteStep(submissions);
+  } else if (hasVoted || (allSubmitted && hasSubmitted)) {
+    showStep('step-results');
+    listenAndRenderResults();
+  } else {
+    // Submitted but waiting for others
+    showStep('step-submit');
+    listenAndRenderSubmit();
+  }
+}
+
+// ── Submit ────────────────────────────────────────────────────────
+function listenAndRenderSubmit() {
+  if (unsubscribe) unsubscribe();
+  document.getElementById('submit-tag').textContent = `👤 ${currentUser}`;
+
+  unsubscribe = onValue(ref(db, '/submissions'), snap => {
+    const submissions = snap.val() || {};
+    const submitted   = Object.keys(submissions);
+    progressBar('pb-submit', submitted.length, MEMBERS_TOTAL);
+
+    const myDone = !!submissions[currentUser];
+    const content = document.getElementById('submit-content');
+
+    if (myDone) {
+      // Waiting screen
+      let chips = submitted.map(m =>
+        `<span class="voter-chip done">✓ ${esc(m)}</span>`
+      ).join('');
+      content.innerHTML = `
+        <div class="card" style="text-align:center;padding:24px 20px">
+          <p style="font-size:1.4rem;margin-bottom:8px">✅</p>
+          <p style="font-weight:500;margin-bottom:4px">Tes morceaux sont enregistrés !</p>
+          <p style="color:var(--muted);font-size:0.82rem">En attente des autres membres…</p>
+        </div>
+        <p class="section-title">Membres prêts (${submitted.length}/${MEMBERS_TOTAL})</p>
+        <div class="voter-status">${chips}</div>`;
+
+      if (submitted.length >= MEMBERS_TOTAL) {
+        if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+        // Fetch full data and go vote
+        get(ref(db, '/submissions')).then(s => {
+          showStep('step-vote');
+          renderVoteStep(s.val() || {});
+        });
+      }
+    } else {
+      // Form
+      content.innerHTML = `
+        <div class="card" id="submit-form">
+          <p class="section-title">Tes 3 morceaux à proposer</p>
+          <label>Morceau 1</label>
+          <input type="text" id="t1" placeholder="Titre – Artiste" />
+          <label>Morceau 2</label>
+          <input type="text" id="t2" placeholder="Titre – Artiste" />
+          <label>Morceau 3</label>
+          <input type="text" id="t3" placeholder="Titre – Artiste" />
+          <button class="btn" id="btn-submit" onclick="window.submitTracks()">Valider mes morceaux</button>
+        </div>`;
+    }
+  });
+}
+
+window.submitTracks = async function() {
+  const t1 = document.getElementById('t1')?.value.trim();
+  const t2 = document.getElementById('t2')?.value.trim();
+  const t3 = document.getElementById('t3')?.value.trim();
+  if (!t1 || !t2 || !t3) return alert('Remplis les 3 morceaux !');
+  const btn = document.getElementById('btn-submit');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Enregistrement…'; }
+  await set(ref(db, `/submissions/${currentUser}`), [t1, t2, t3]);
+};
+
+// ── Vote ──────────────────────────────────────────────────────────
+function renderVoteStep(submissions) {
+  document.getElementById('vote-tag').textContent = `👤 ${currentUser}`;
+  const voted = 0;
+  progressBar('pb-vote', voted, MEMBERS_TOTAL);
+
+  const others = Object.keys(submissions).filter(m => m !== currentUser);
+  selections = {};
+
+  let html = '';
+  if (others.length === 0) {
+    html = `<div class="info-box">Aucun autre membre trouvé.</div>`;
+  } else {
+    others.forEach(member => {
+      html += `<div class="card">
+        <p class="section-title">${esc(member)}</p>`;
+      submissions[member].forEach((track, i) => {
+        html += `<div class="track-option" id="opt-${member}-${i}"
+          onclick="window.selectTrack('${member.replace(/'/g,"\\'")}', ${i})">
+          <div class="radio"></div>
+          <span class="track-name">${esc(track)}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+  }
+  document.getElementById('vote-body').innerHTML = html;
+}
+
+window.selectTrack = function(member, idx) {
+  document.querySelectorAll(`[id^="opt-${member}-"]`).forEach(c => c.classList.remove('selected'));
+  document.getElementById(`opt-${member}-${idx}`)?.classList.add('selected');
+  selections[member] = idx;
+};
+
+window.submitVote = async function() {
+  const snap = await get(ref(db, '/submissions'));
+  const submissions = snap.val() || {};
+  const others = Object.keys(submissions).filter(m => m !== currentUser);
+  const missing = others.filter(m => selections[m] === undefined);
+  if (missing.length > 0) return alert(`Vote manquant pour : ${missing.join(', ')}`);
+
+  const btn = document.getElementById('btn-vote');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Envoi…';
+
+  await set(ref(db, `/votes/${currentUser}`), selections);
+  selections = {};
+  showStep('step-results');
+  listenAndRenderResults();
+};
+
+// ── Results ───────────────────────────────────────────────────────
+function listenAndRenderResults() {
+  if (unsubscribe) unsubscribe();
+  unsubscribe = onValue(ref(db, '/'), snap => {
+    const data = snap.val() || {};
+    const submissions = data.submissions || {};
+    const votes       = data.votes       || {};
+    renderResults(submissions, votes);
+  });
+}
+
+function renderResults(submissions, votes) {
+  const body    = document.getElementById('results-body');
+  const members = Object.keys(submissions);
+  const voters  = Object.keys(votes);
+  const allVoted = voters.length >= MEMBERS_TOTAL;
+
+  // Tally
+  const tally = {};
+  members.forEach(m => { tally[m] = [0, 0, 0]; });
+  voters.forEach(voter => {
+    const vote = votes[voter];
+    Object.entries(vote).forEach(([member, trackIdx]) => {
+      if (tally[member]) tally[member][Number(trackIdx)]++;
+    });
+  });
+
+  let html = '';
+
+  // Status chips
+  html += `<p class="section-title">Votes reçus (${voters.length}/${MEMBERS_TOTAL})</p>
+    <div class="voter-status">`;
+  members.forEach(m => {
+    const v = voters.includes(m);
+    html += `<span class="voter-chip ${v ? 'done' : ''}">${v ? '✓' : '⏳'} ${esc(m)}</span>`;
+  });
+  html += `</div>`;
+
+  if (!allVoted) {
+    html += `<div class="info-box"><span class="spinner"></span>En attente des votes manquants…<br>
+      Les résultats apparaîtront automatiquement.</div>`;
+  } else {
+    // Setlist
+    html += `<div class="setlist"><h2>🎵 Setlist retenue</h2>`;
+    members.forEach((m, i) => {
+      const counts   = tally[m];
+      const maxVotes = Math.max(...counts);
+      const winIdx   = counts.indexOf(maxVotes);
+      html += `<div class="setlist-item">
+        <span class="setlist-num">${i + 1}</span>
+        <div>
+          <div class="setlist-track">${esc(submissions[m][winIdx])}</div>
+          <div class="setlist-by">proposé par ${esc(m)} · ${maxVotes} vote${maxVotes > 1 ? 's' : ''}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Detail
+  html += `<p class="section-title" style="margin-top:8px">Détail des votes</p>`;
+  members.forEach(m => {
+    const counts   = tally[m];
+    const total    = voters.length;
+    const maxVotes = Math.max(...counts);
+    const winIdx   = counts.indexOf(maxVotes);
+
+    html += `<div class="result-card">
+      <p class="result-member">${esc(m)}</p>`;
+    if (allVoted) html += `<span class="winner-badge">🏆 ${esc(submissions[m][winIdx]).substring(0,18)}</span>`;
+    submissions[m].forEach((track, i) => {
+      const pct   = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
+      const isWin = allVoted && i === winIdx;
+      html += `<div class="vote-bar-wrap">
+        <span class="vote-bar-label">${esc(track)}</span>
+        <div class="vote-bar-track">
+          <div class="vote-bar-fill ${isWin ? '' : 'loser'}" style="width:${pct}%"></div>
+        </div>
+        <span class="vote-bar-count">${counts[i]}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  body.innerHTML = html;
+}
+
+// ── Reset ─────────────────────────────────────────────────────────
+window.resetApp = async function() {
+  if (!confirm('⚠️ Effacer TOUS les votes et morceaux ? Cette action est irréversible.')) return;
+  await remove(ref(db, '/'));
+  currentUser = null; selections = {};
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  showStep('step-login');
+  document.getElementById('login-name').value = '';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'C\'est parti →';
+};
+
+</script>
+</body>
+</html>
